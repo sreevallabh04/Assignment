@@ -31,7 +31,8 @@ mongoose.connect(process.env.MONGO_URI, {
 .then(() => console.log('MongoDB connected'))
 .catch(err => {
   console.error('MongoDB connection error:', err);
-  process.exit(1);
+  console.warn('Continuing without MongoDB connection - some features may not work properly');
+  // Don't exit the process, allow the server to continue running
 });
 
 // Socket.IO connection handler
