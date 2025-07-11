@@ -8,6 +8,15 @@ const ActivityLog = require('../models/ActivityLog');
  * @access  Private
  */
 const getTasks = async (req, res) => {
+  // Check MongoDB connection status
+  if (!global.isMongoDBConnected) {
+    return res.status(503).json({
+      success: false,
+      message: 'Database service unavailable. Please try again later.',
+      isDbConnected: false
+    });
+  }
+
   try {
     const tasks = await Task.find()
       .populate('assignedTo', 'username')
