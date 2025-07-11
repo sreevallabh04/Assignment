@@ -164,6 +164,15 @@ const createTask = async (req, res) => {
  * @access  Private
  */
 const updateTask = async (req, res) => {
+  // Check MongoDB connection status
+  if (!global.isMongoDBConnected) {
+    return res.status(503).json({
+      success: false,
+      message: 'Database service unavailable. Please try again later.',
+      isDbConnected: false
+    });
+  }
+
   try {
     const { title, description, status, priority, assignedTo } = req.body;
     
@@ -260,23 +269,28 @@ const updateTask = async (req, res) => {
     }
 
     // Log the activity
-    await ActivityLog.logActivity({
-      user: req.user._id,
-      action,
-      task: updatedTask._id,
-      details: {
-        previousState,
-        newState: {
-          title: updatedTask.title,
-          description: updatedTask.description,
-          status: updatedTask.status,
-          priority: updatedTask.priority,
-          assignedTo: updatedTask.assignedTo
-        },
-        field: changes.join(', '),
-        message: `Task "${updatedTask.title}" ${action}d by ${req.user.username} (changed: ${changes.join(', ')})`
-      }
-    });
+    try {
+      await ActivityLog.logActivity({
+        user: req.user._id,
+        action,
+        task: updatedTask._id,
+        details: {
+          previousState,
+          newState: {
+            title: updatedTask.title,
+            description: updatedTask.description,
+            status: updatedTask.status,
+            priority: updatedTask.priority,
+            assignedTo: updatedTask.assignedTo
+          },
+          field: changes.join(', '),
+          message: `Task "${updatedTask.title}" ${action}d by ${req.user.username} (changed: ${changes.join(', ')})`
+        }
+      });
+    } catch (logError) {
+      console.warn('Failed to log task update activity:', logError.message);
+      // Continue even if logging fails
+    }
 
     res.json({
       success: true,
