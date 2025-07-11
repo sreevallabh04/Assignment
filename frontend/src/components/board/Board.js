@@ -18,7 +18,8 @@ function Board() {
   const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
   const [logs, setLogs] = useState([]);
-  const [users, setUsers] = useState([]);
+  // Keeping users state for future use but removing the warning
+  const [users] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [conflict, setConflict] = useState(null);
@@ -174,14 +175,18 @@ function Board() {
   };
 
   const handleTaskDrop = async (taskId, newStatus) => {
+    // Move task variable outside try/catch to make it available in both blocks
+    const task = tasks.find(t => t._id === taskId);
+    if (!task || task.status === newStatus) {
+      return;
+    }
+    
+    // Store original status for potential reversion
+    const originalStatus = task.status;
+    
     try {
       const token = localStorage.getItem('token');
-      const task = tasks.find(t => t._id === taskId);
       
-      if (!task || task.status === newStatus) {
-        return;
-      }
-
       // Optimistically update UI
       setTasks((prev) => prev.map((t) => 
         t._id === taskId ? { ...t, status: newStatus } : t
@@ -199,7 +204,7 @@ function Board() {
       console.error('Error updating task status:', err);
       // Revert optimistic update
       setTasks((prev) => prev.map((t) => 
-        t._id === taskId ? { ...t, status: task.status } : t
+        t._id === taskId ? { ...t, status: originalStatus } : t
       ));
       alert('Failed to update task status. Please try again.');
     }
