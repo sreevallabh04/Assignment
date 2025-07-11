@@ -154,6 +154,15 @@ const loginUser = async (req, res) => {
  * @access  Private
  */
 const getUserProfile = async (req, res) => {
+  // Check MongoDB connection status
+  if (!global.isMongoDBConnected) {
+    return res.status(503).json({
+      success: false,
+      message: 'Database service unavailable. Please try again later.',
+      isDbConnected: false
+    });
+  }
+
   try {
     const user = await User.findById(req.user._id);
 
