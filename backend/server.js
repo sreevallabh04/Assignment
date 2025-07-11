@@ -8,6 +8,9 @@ const dotenv = require('dotenv');
 // Load environment variables
 dotenv.config();
 
+// Global state to track MongoDB connection status
+global.isMongoDBConnected = false;
+
 // Initialize Express app
 const app = express();
 const server = http.createServer(app);
@@ -23,16 +26,51 @@ const io = socketIo(server, {
 app.use(cors());
 app.use(express.json());
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('MongoDB connected'))
-.catch(err => {
-  console.error('MongoDB connection error:', err);
-  console.warn('Continuing without MongoDB connection - some features may not work properly');
-  // Don't exit the process, allow the server to continue running
+// Connect to MongoDB with retry mechanism
+const connectMongoDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000, // Reduce the timeout for faster feedback
+      heartbeatFrequencyMS: 10000, // Keep connection alive
+    });
+    console.log('MongoDB connected successfully');
+    global.isMongoDBConnected = true;
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    console.warn('Continuing without MongoDB connection - some features may not work properly');
+    global.isMongoDBConnected = false;
+    
+    // Try to reconnect after 30 seconds
+    setTimeout(connectMongoDB, 30000);
+  }
+};
+
+// Initial MongoDB connection attempt
+connectMongoDB();
+
+// Set up MongoDB connection event listeners
+mongoose.connection.on('connected', () => {
+  console.log('Mongoose connected to MongoDB');
+  global.isMongoDBConnected = true;
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error('Mongoose connection error:', err);
+  global.isMongoDBConnected = false;
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.warn('Mongoose disconnected from MongoDB');
+  global.isMongoDBConnected = false;
+});
+
+// Handle process termination events
+process.on('SIGINT', async () => {
+  await mongoose.connection.close();
+  console.log('MongoDB connection closed due to app termination');
+  process.exit(0);
 });
 
 // Socket.IO connection handler
