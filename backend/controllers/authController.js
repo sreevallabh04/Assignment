@@ -197,6 +197,15 @@ const getUserProfile = async (req, res) => {
  * @access  Private
  */
 const getAllUsers = async (req, res) => {
+  // Check MongoDB connection status
+  if (!global.isMongoDBConnected) {
+    return res.status(503).json({
+      success: false,
+      message: 'Database service unavailable. Please try again later.',
+      isDbConnected: false
+    });
+  }
+  
   try {
     const users = await User.find()
       .select('username email createdAt')
