@@ -27,37 +27,20 @@ A web-based collaborative to-do board application where multiple users can log i
 - Activity log showing recent actions
 - Responsive design for desktop and mobile
 
-## Setup and Installation
-
-### Prerequisites
-- Node.js
-- MongoDB
-
-### Backend Setup
-```bash
-cd backend
-npm install
-npm start
-```
-
-### Frontend Setup
-```bash
-cd frontend
-npm install
-npm start
-```
-
-## Usage Guide
-
-(Detailed usage instructions will be added as the project develops)
-
+## Setup
+1. Backend: cd backend && npm install && npm start
+2. Frontend: cd frontend && npm install && npm start
+## Features
+- User auth
+- Real-time task management
+- Drag & drop
+- Smart assign
+- Conflict handling
+- Activity log
 ## Smart Assign Logic
-
-The Smart Assign feature automatically assigns tasks to the user with the fewest active tasks, balancing the workload across the team.
-
+Assigns to user with fewest active tasks.
 ## Conflict Handling
-
-When two users edit the same task simultaneously, the application detects the conflict and presents both versions, allowing users to choose between merging the changes or overwriting with one version.
+Shows both versions, allows merge or overwrite.
 
 ## Demo
 
