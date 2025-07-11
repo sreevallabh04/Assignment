@@ -80,6 +80,15 @@ const getTaskById = async (req, res) => {
  * @access  Private
  */
 const createTask = async (req, res) => {
+  // Check MongoDB connection status
+  if (!global.isMongoDBConnected) {
+    return res.status(503).json({
+      success: false,
+      message: 'Database service unavailable. Please try again later.',
+      isDbConnected: false
+    });
+  }
+
   try {
     const { title, description, status, priority, assignedTo } = req.body;
 
@@ -114,21 +123,26 @@ const createTask = async (req, res) => {
     const savedTask = await newTask.save();
 
     // Log the activity
-    await ActivityLog.logActivity({
-      user: req.user._id,
-      action: 'create',
-      task: savedTask._id,
-      details: {
-        message: `Task "${title}" created by ${req.user.username}`,
-        newState: {
-          title,
-          description,
-          status,
-          priority,
-          assignedTo
+    try {
+      await ActivityLog.logActivity({
+        user: req.user._id,
+        action: 'create',
+        task: savedTask._id,
+        details: {
+          message: `Task "${title}" created by ${req.user.username}`,
+          newState: {
+            title,
+            description,
+            status,
+            priority,
+            assignedTo
+          }
         }
-      }
-    });
+      });
+    } catch (logError) {
+      console.warn('Failed to log task creation activity:', logError.message);
+      // Continue even if logging fails
+    }
 
     res.status(201).json({
       success: true,
