@@ -15,6 +15,15 @@ const generateToken = (id) => {
  * @access  Public
  */
 const registerUser = async (req, res) => {
+  // Check MongoDB connection status
+  if (!global.isMongoDBConnected) {
+    return res.status(503).json({
+      success: false,
+      message: 'Database service unavailable. Please try again later.',
+      isDbConnected: false
+    });
+  }
+
   try {
     const { username, email, password } = req.body;
 
@@ -39,13 +48,18 @@ const registerUser = async (req, res) => {
 
     if (user) {
       // Log the registration activity
-      await ActivityLog.logActivity({
-        user: user._id,
-        action: 'register',
-        details: {
-          message: `User ${username} registered`
-        }
-      });
+      try {
+        await ActivityLog.logActivity({
+          user: user._id,
+          action: 'register',
+          details: {
+            message: `User ${username} registered`
+          }
+        });
+      } catch (logError) {
+        // Don't fail registration if logging fails
+        console.warn('Failed to log registration activity:', logError.message);
+      }
 
       res.status(201).json({
         success: true,
