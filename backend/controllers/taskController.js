@@ -41,6 +41,15 @@ const getTasks = async (req, res) => {
  * @access  Private
  */
 const getTaskById = async (req, res) => {
+  // Check MongoDB connection status
+  if (!global.isMongoDBConnected) {
+    return res.status(503).json({
+      success: false,
+      message: 'Database service unavailable. Please try again later.',
+      isDbConnected: false
+    });
+  }
+
   try {
     const task = await Task.findById(req.params.id)
       .populate('assignedTo', 'username')
