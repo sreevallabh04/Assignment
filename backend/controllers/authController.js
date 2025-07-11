@@ -92,6 +92,15 @@ const registerUser = async (req, res) => {
  * @access  Public
  */
 const loginUser = async (req, res) => {
+  // Check MongoDB connection status
+  if (!global.isMongoDBConnected) {
+    return res.status(503).json({
+      success: false,
+      message: 'Database service unavailable. Please try again later.',
+      isDbConnected: false
+    });
+  }
+
   try {
     const { email, password } = req.body;
 
@@ -101,13 +110,18 @@ const loginUser = async (req, res) => {
     // Check if user exists and password matches
     if (user && (await user.matchPassword(password))) {
       // Log the login activity
-      await ActivityLog.logActivity({
-        user: user._id,
-        action: 'login',
-        details: {
-          message: `User ${user.username} logged in`
-        }
-      });
+      try {
+        await ActivityLog.logActivity({
+          user: user._id,
+          action: 'login',
+          details: {
+            message: `User ${user.username} logged in`
+          }
+        });
+      } catch (logError) {
+        // Don't fail login if logging fails
+        console.warn('Failed to log login activity:', logError.message);
+      }
 
       res.json({
         success: true,
