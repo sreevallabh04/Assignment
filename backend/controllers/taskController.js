@@ -312,6 +312,15 @@ const updateTask = async (req, res) => {
  * @access  Private
  */
 const deleteTask = async (req, res) => {
+  // Check MongoDB connection status
+  if (!global.isMongoDBConnected) {
+    return res.status(503).json({
+      success: false,
+      message: 'Database service unavailable. Please try again later.',
+      isDbConnected: false
+    });
+  }
+
   try {
     const task = await Task.findById(req.params.id);
     
@@ -322,24 +331,34 @@ const deleteTask = async (req, res) => {
       });
     }
     
+    // Store task details before deletion for logging
+    const taskDetails = {
+      title: task.title,
+      description: task.description,
+      status: task.status,
+      priority: task.priority,
+      assignedTo: task.assignedTo
+    };
+    
+    const taskId = task._id.toString();
+    
     await task.remove();
     
     // Log the activity
-    await ActivityLog.logActivity({
-      user: req.user._id,
-      action: 'delete',
-      task: req.params.id,
-      details: {
-        message: `Task "${task.title}" deleted by ${req.user.username}`,
-        previousState: {
-          title: task.title,
-          description: task.description,
-          status: task.status,
-          priority: task.priority,
-          assignedTo: task.assignedTo
+    try {
+      await ActivityLog.logActivity({
+        user: req.user._id,
+        action: 'delete',
+        task: taskId,
+        details: {
+          message: `Task "${taskDetails.title}" deleted by ${req.user.username}`,
+          previousState: taskDetails
         }
-      }
-    });
+      });
+    } catch (logError) {
+      console.warn('Failed to log task deletion activity:', logError.message);
+      // Continue even if logging fails
+    }
     
     res.json({
       success: true,
