@@ -154,8 +154,35 @@ const getUserProfile = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Get all users (for task assignment)
+ * @route   GET /api/auth/users
+ * @access  Private
+ */
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find()
+      .select('username email createdAt')
+      .sort({ username: 1 });
+
+    res.json({
+      success: true,
+      users,
+      count: users.length
+    });
+  } catch (error) {
+    console.error('Get all users error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching users',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   getUserProfile,
+  getAllUsers,
 };
