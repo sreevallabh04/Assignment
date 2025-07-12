@@ -110,19 +110,20 @@ PORT=5000
 NODE_ENV=development
 
 # Database Configuration
-MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/taskflow?retryWrites=true&w=majority
+MONGO_URI=mongodb+srv://your-username:your-password@your-cluster.mongodb.net/your-database?retryWrites=true&w=majority
 
 # JWT Configuration
-JWT_SECRET=your-super-secret-jwt-key-make-it-long-and-random-for-security
+JWT_SECRET=your-super-secret-jwt-key-here-make-it-long-and-random-minimum-32-characters
 
 # Frontend URL (for CORS)
 CLIENT_URL=http://localhost:3000
 ```
 
 **Important Notes:**
-- Replace `username` and `password` with your MongoDB Atlas credentials
-- Generate a strong JWT secret (recommended: 64+ characters)
-- For production, use environment-specific values
+- Replace `your-username` and `your-password` with your MongoDB Atlas credentials
+- Replace `your-cluster` and `your-database` with your actual MongoDB Atlas cluster and database names
+- Generate a strong JWT secret using: `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"`
+- For production, use environment-specific values and different secrets
 
 #### Start the Backend Server
 ```bash
@@ -168,7 +169,7 @@ On Your Network:  http://192.168.1.x:3000
 ### 5. Verify Installation
 1. Open `http://localhost:3000` in your browser
 2. Register a new account
-3. Create a test task
+3. Create your first task
 4. Open another browser window/tab and login with a different account
 5. Verify real-time updates work between windows
 
@@ -556,7 +557,7 @@ taskflow-collaborative-board/
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/amazing-feature`
 3. Make your changes
-4. Test thoroughly
+4. Verify your changes work correctly
 5. Commit your changes: `git commit -m 'Add amazing feature'`
 6. Push to the branch: `git push origin feature/amazing-feature`
 7. Open a Pull Request
@@ -575,9 +576,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 👨‍💻 Author
 
 **Srivallabh Kakarala**
-- GitHub: [@srivallabhkakarala](https://github.com/srivallabhkakarala)
+- GitHub: [@sreevallabh04](https://github.com/sreevallabh04)
 - LinkedIn: [Srivallabh Kakarala](https://linkedin.com/in/srivallabhkakarala)
-- Email: srivallabh.kakarala@example.com
+- Email: contact@taskflow.dev
 
 ## 🙏 Acknowledgments
 
@@ -612,4 +613,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 🚀 **Perfect for showcasing full-stack development skills to recruiters!**
 
-*Built with ❤️ and lots of ☕ by Srivallabh Kakarala*
+*Built with ❤️ and lots of ☕ by Sreevallabh Kakarala*

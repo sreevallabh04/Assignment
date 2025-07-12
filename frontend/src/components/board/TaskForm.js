@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_CONFIG } from '../../config/api';
 
 function TaskForm({ onClose, task = {}, isEdit = false }) {
   const [formData, setFormData] = useState({
@@ -80,11 +81,11 @@ function TaskForm({ onClose, task = {}, isEdit = false }) {
       };
       
       if (isEdit) {
-        await axios.put(`/api/tasks/${task._id}`, dataToSend, {
+        await axios.put(API_CONFIG.ENDPOINTS.TASK_BY_ID(task._id), dataToSend, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
-        await axios.post('/api/tasks', dataToSend, {
+        await axios.post(API_CONFIG.ENDPOINTS.TASKS, dataToSend, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }

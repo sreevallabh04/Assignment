@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import { API_CONFIG } from '../../config/api';
 
 function Register() {
   const [username, setUsername] = useState('');
@@ -16,7 +17,7 @@ function Register() {
     setError('');
     
     try {
-      const res = await axios.post('/api/auth/register', { username, email, password });
+      const res = await axios.post(API_CONFIG.ENDPOINTS.REGISTER, { username, email, password });
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
       navigate('/board');

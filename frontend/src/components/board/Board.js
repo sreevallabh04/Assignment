@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import axios from 'axios';
+import { API_CONFIG } from '../../config/api';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import Column from './Column';
@@ -35,12 +36,12 @@ function Board() {
     const parsedUser = JSON.parse(userData);
     setUser(parsedUser);
 
-    const newSocket = io('http://localhost:5000');
+    const newSocket = io(API_CONFIG.SOCKET_URL);
     setSocket(newSocket);
 
     const fetchTasks = async () => {
       try {
-        const res = await axios.get('/api/tasks', { 
+        const res = await axios.get(API_CONFIG.ENDPOINTS.TASKS, { 
           headers: { Authorization: `Bearer ${token}` } 
         });
         setTasks(res.data.tasks);
@@ -53,7 +54,7 @@ function Board() {
 
     const fetchLogs = async () => {
       try {
-        const res = await axios.get('/api/logs', { 
+        const res = await axios.get(API_CONFIG.ENDPOINTS.LOGS, { 
           headers: { Authorization: `Bearer ${token}` } 
         });
         setLogs(res.data.logs);
@@ -108,7 +109,7 @@ function Board() {
 
   const handleDelete = async (taskId) => {
     try {
-      await axios.delete(`/api/tasks/${taskId}`, { 
+      await axios.delete(API_CONFIG.ENDPOINTS.TASK_BY_ID(taskId), { 
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
       });
       setTasks((prev) => prev.filter((t) => t._id !== taskId));
@@ -129,7 +130,7 @@ function Board() {
 
   const handleSmartAssign = async (taskId) => {
     try {
-      const res = await axios.put(`/api/tasks/${taskId}/smart-assign`, {}, { 
+      const res = await axios.put(API_CONFIG.ENDPOINTS.SMART_ASSIGN(taskId), {}, { 
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
       });
       
@@ -163,7 +164,7 @@ function Board() {
 
   const handleDrop = async (taskId, newStatus) => {
     try {
-      const res = await axios.put(`/api/tasks/${taskId}`, { status: newStatus }, { 
+      const res = await axios.put(API_CONFIG.ENDPOINTS.TASK_BY_ID(taskId), { status: newStatus }, { 
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
       });
       setTasks((prev) => prev.map((t) => t._id === taskId ? res.data.task : t));
