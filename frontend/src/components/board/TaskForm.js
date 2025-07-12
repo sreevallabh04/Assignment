@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_CONFIG } from '../../config/api';
 
-function TaskForm({ onClose, task = {}, isEdit = false }) {
+function TaskForm({ onClose, task = null, isEdit = false, onSuccess }) {
   const [formData, setFormData] = useState({
-    title: task.title || '',
-    description: task.description || '',
-    priority: task.priority || 'Medium',
-    status: task.status || 'Todo'
+    title: task?.title || '',
+    description: task?.description || '',
+    priority: task?.priority || 'Medium',
+    status: task?.status || 'Todo'
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -15,10 +15,10 @@ function TaskForm({ onClose, task = {}, isEdit = false }) {
   useEffect(() => {
     if (isEdit && task) {
       setFormData({
-        title: task.title || '',
-        description: task.description || '',
-        priority: task.priority || 'Medium',
-        status: task.status || 'Todo'
+        title: task?.title || '',
+        description: task?.description || '',
+        priority: task?.priority || 'Medium',
+        status: task?.status || 'Todo'
       });
     }
   }, [isEdit, task]);
@@ -80,7 +80,7 @@ function TaskForm({ onClose, task = {}, isEdit = false }) {
         description: formData.description.trim()
       };
       
-      if (isEdit) {
+      if (isEdit && task?._id) {
         await axios.put(API_CONFIG.ENDPOINTS.TASK_BY_ID(task._id), dataToSend, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -90,6 +90,9 @@ function TaskForm({ onClose, task = {}, isEdit = false }) {
         });
       }
       
+      if (onSuccess) {
+        onSuccess(isEdit ? 'Task updated successfully!' : 'Task created successfully!', 'success');
+      }
       onClose();
       window.location.reload(); // Refresh to show updated tasks
     } catch (err) {
