@@ -78,7 +78,7 @@ Environment: Static Site
 Region: Choose closest to you
 Branch: master
 Root Directory: frontend
-Build Command: npm install && npm run build
+Build Command: npm install
 Publish Directory: build
 ```
 
