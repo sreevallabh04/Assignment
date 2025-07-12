@@ -22,7 +22,8 @@
     "render-build": "npm install && npm run build"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": "18.17.0",
+    "npm": ">=8.0.0"
   },
   "eslintConfig": {
     "extends": [
