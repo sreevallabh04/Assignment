@@ -108,10 +108,23 @@ function Board() {
   };
 
   const handleDelete = async (taskId) => {
+    // 🔬 LOG: Frontend delete request
+    console.log('🔬 FRONTEND DELETE - Starting delete request');
+    console.log('🔬 FRONTEND DELETE - Task ID:', taskId);
+    console.log('🔬 FRONTEND DELETE - Task ID type:', typeof taskId);
+    console.log('🔬 FRONTEND DELETE - API endpoint:', API_CONFIG.ENDPOINTS.TASK_BY_ID(taskId));
+    console.log('🔬 FRONTEND DELETE - Token exists:', !!localStorage.getItem('token'));
+    
     try {
-      await axios.delete(API_CONFIG.ENDPOINTS.TASK_BY_ID(taskId), { 
+      console.log('🔬 FRONTEND DELETE - Making DELETE request...');
+      
+      const response = await axios.delete(API_CONFIG.ENDPOINTS.TASK_BY_ID(taskId), { 
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
       });
+      
+      console.log('🔬 FRONTEND DELETE - Request successful:', response.status);
+      console.log('🔬 FRONTEND DELETE - Response data:', response.data);
+      
       setTasks((prev) => prev.filter((t) => t._id !== taskId));
       if (socket) socket.emit('taskDelete', taskId);
       
@@ -120,9 +133,15 @@ function Board() {
         type: 'success'
       });
     } catch (err) {
-      console.error('Error deleting task:', err);
+      console.error('🔬 FRONTEND DELETE - Error occurred:');
+      console.error('🔬 FRONTEND DELETE - Error message:', err.message);
+      console.error('🔬 FRONTEND DELETE - Error response:', err.response);
+      console.error('🔬 FRONTEND DELETE - Error status:', err.response?.status);
+      console.error('🔬 FRONTEND DELETE - Error data:', err.response?.data);
+      console.error('🔬 FRONTEND DELETE - Full error:', err);
+      
       setNotification({
-        message: 'Failed to delete task. Please try again.',
+        message: `Failed to delete task. Error: ${err.response?.data?.message || err.message}`,
         type: 'error'
       });
     }

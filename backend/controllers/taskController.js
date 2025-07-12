@@ -312,8 +312,15 @@ const updateTask = async (req, res) => {
  * @access  Private
  */
 const deleteTask = async (req, res) => {
+  // 🔬 LOG: Start of delete function
+  console.log('🔬 DELETE TASK - Starting deletion process');
+  console.log('🔬 DELETE TASK - Request params:', req.params);
+  console.log('🔬 DELETE TASK - Task ID received:', req.params.id);
+  console.log('🔬 DELETE TASK - User making request:', req.user?._id, req.user?.username);
+
   // Check MongoDB connection status
   if (!global.isMongoDBConnected) {
+    console.log('🔬 DELETE TASK - MongoDB not connected');
     return res.status(503).json({
       success: false,
       message: 'Database service unavailable. Please try again later.',
@@ -321,10 +328,34 @@ const deleteTask = async (req, res) => {
     });
   }
 
+  // 🔬 LOG: Validate Task ID format
+  const mongoose = require('mongoose');
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    console.log('🔬 DELETE TASK - INVALID TASK ID FORMAT:', req.params.id);
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid task ID format',
+      taskId: req.params.id
+    });
+  }
+
   try {
+    console.log('🔬 DELETE TASK - Attempting to find task with ID:', req.params.id);
+    
     const task = await Task.findById(req.params.id);
     
+    console.log('🔬 DELETE TASK - Task found:', !!task);
+    if (task) {
+      console.log('🔬 DELETE TASK - Task details:', {
+        id: task._id,
+        title: task.title,
+        status: task.status,
+        createdBy: task.createdBy
+      });
+    }
+    
     if (!task) {
+      console.log('🔬 DELETE TASK - Task not found in database');
       return res.status(404).json({
         success: false,
         message: 'Task not found'
@@ -341,11 +372,28 @@ const deleteTask = async (req, res) => {
     };
     
     const taskId = task._id.toString();
+    console.log('🔬 DELETE TASK - About to delete task:', taskId);
+    console.log('🔬 DELETE TASK - Task details before deletion:', taskDetails);
     
-    await task.remove();
+    // 🔬 LOG: Try different deletion methods
+    console.log('🔬 DELETE TASK - Attempting deletion using findByIdAndDelete...');
+    
+    // Use findByIdAndDelete instead of deprecated remove()
+    const deletedTask = await Task.findByIdAndDelete(req.params.id);
+    
+    console.log('🔬 DELETE TASK - Deletion successful:', !!deletedTask);
+    
+    if (!deletedTask) {
+      console.log('🔬 DELETE TASK - No task was deleted (task may have been already deleted)');
+      return res.status(404).json({
+        success: false,
+        message: 'Task not found or already deleted'
+      });
+    }
     
     // Log the activity
     try {
+      console.log('🔬 DELETE TASK - Attempting to log activity...');
       await ActivityLog.logActivity({
         user: req.user._id,
         action: 'delete',
@@ -355,21 +403,31 @@ const deleteTask = async (req, res) => {
           previousState: taskDetails
         }
       });
+      console.log('🔬 DELETE TASK - Activity logged successfully');
     } catch (logError) {
-      console.warn('Failed to log task deletion activity:', logError.message);
+      console.warn('🔬 DELETE TASK - Failed to log task deletion activity:', logError.message);
+      console.warn('🔬 DELETE TASK - Log error details:', logError);
       // Continue even if logging fails
     }
     
+    console.log('🔬 DELETE TASK - Sending success response');
     res.json({
       success: true,
       message: 'Task removed'
     });
   } catch (error) {
-    console.error('Delete task error:', error);
+    console.error('🔬 DELETE TASK - ERROR OCCURRED:');
+    console.error('🔬 DELETE TASK - Error message:', error.message);
+    console.error('🔬 DELETE TASK - Error name:', error.name);
+    console.error('🔬 DELETE TASK - Error stack:', error.stack);
+    console.error('🔬 DELETE TASK - Full error object:', error);
+    
     res.status(500).json({
       success: false,
       message: 'Server error while deleting task',
-      error: error.message
+      error: error.message,
+      errorName: error.name,
+      taskId: req.params.id
     });
   }
 };
