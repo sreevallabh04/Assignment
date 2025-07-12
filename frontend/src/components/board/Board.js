@@ -10,6 +10,7 @@ import ActivityLog from './ActivityLog';
 import TaskForm from './TaskForm';
 import ConflictResolver from './ConflictResolver';
 import LoadingSpinner from '../common/LoadingSpinner';
+import Notification from '../common/Notification';
 
 function Board() {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ function Board() {
   const [editingTask, setEditingTask] = useState(null);
   const [conflict, setConflict] = useState(null);
   const [socket, setSocket] = useState(null);
+  const [notification, setNotification] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -111,8 +113,17 @@ function Board() {
       });
       setTasks((prev) => prev.filter((t) => t._id !== taskId));
       if (socket) socket.emit('taskDelete', taskId);
+      
+      setNotification({
+        message: 'Task deleted successfully!',
+        type: 'success'
+      });
     } catch (err) {
       console.error('Error deleting task:', err);
+      setNotification({
+        message: 'Failed to delete task. Please try again.',
+        type: 'error'
+      });
     }
   };
 
@@ -121,10 +132,32 @@ function Board() {
       const res = await axios.put(`/api/tasks/${taskId}/smart-assign`, {}, { 
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
       });
-      setTasks((prev) => prev.map((t) => t._id === taskId ? res.data.task : t));
-      if (socket) socket.emit('taskAssign', res.data.task);
+      
+      if (res.data.success) {
+        // Update the task with the assigned user information
+        const updatedTask = {
+          ...res.data.task,
+          assignedTo: res.data.assignedUser
+        };
+        
+        setTasks((prev) => prev.map((t) => t._id === taskId ? updatedTask : t));
+        
+        if (socket) {
+          socket.emit('taskAssign', updatedTask);
+        }
+        
+        // Show success notification
+        setNotification({
+          message: `Task assigned to ${res.data.assignedUser.username}!`,
+          type: 'success'
+        });
+      }
     } catch (err) {
       console.error('Error smart assigning task:', err);
+      setNotification({
+        message: 'Failed to assign task. Please try again.',
+        type: 'error'
+      });
     }
   };
 
@@ -137,12 +170,24 @@ function Board() {
       if (socket) socket.emit('statusChange', { taskId, newStatus });
     } catch (err) {
       console.error('Error updating task status:', err);
+      setNotification({
+        message: 'Failed to update task status. Please try again.',
+        type: 'error'
+      });
     }
   };
 
   const handleResolveConflict = async (resolution, mergedData) => {
     // Implementation for conflict resolution
     setConflict(null);
+  };
+
+  const showNotification = (message, type = 'success') => {
+    setNotification({ message, type });
+  };
+
+  const hideNotification = () => {
+    setNotification(null);
   };
 
   const columns = ['Todo', 'In Progress', 'Done'];
@@ -210,6 +255,7 @@ function Board() {
               }} 
               task={editingTask} 
               isEdit={!!editingTask} 
+              onSuccess={showNotification}
             />
           </div>
         </div>
@@ -225,6 +271,14 @@ function Board() {
             />
           </div>
         </div>
+      )}
+
+      {notification && (
+        <Notification 
+          message={notification.message}
+          type={notification.type}
+          onClose={hideNotification}
+        />
       )}
     </div>
   );

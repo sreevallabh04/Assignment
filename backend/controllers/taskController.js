@@ -545,6 +545,9 @@ const smartAssignTask = async (req, res) => {
     
     const updatedTask = await task.save();
     
+    // Populate the assignedTo field with user data
+    await updatedTask.populate('assignedTo', 'username email');
+    
     // Get the username of the assigned user for the response
     const assignedUser = await User.findById(userWithMinTasks);
     

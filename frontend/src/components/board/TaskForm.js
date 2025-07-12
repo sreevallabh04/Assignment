@@ -27,22 +27,64 @@ function TaskForm({ onClose, task = {}, isEdit = false }) {
       ...formData,
       [e.target.name]: e.target.value
     });
+    // Clear error when user starts typing
+    if (error) setError('');
+  };
+
+  const validateForm = () => {
+    const { title } = formData;
+    
+    // Check if title is empty
+    if (!title.trim()) {
+      setError('Task title is required');
+      return false;
+    }
+    
+    // Check if title matches column names
+    const columnNames = ['Todo', 'In Progress', 'Done'];
+    if (columnNames.includes(title.trim())) {
+      setError('Task title cannot be the same as a column name (Todo, In Progress, Done)');
+      return false;
+    }
+    
+    // Check title length
+    if (title.trim().length < 3) {
+      setError('Task title must be at least 3 characters long');
+      return false;
+    }
+    
+    if (title.trim().length > 100) {
+      setError('Task title cannot exceed 100 characters');
+      return false;
+    }
+    
+    return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     setLoading(true);
     setError('');
 
     try {
       const token = localStorage.getItem('token');
+      const dataToSend = {
+        ...formData,
+        title: formData.title.trim(),
+        description: formData.description.trim()
+      };
       
       if (isEdit) {
-        await axios.put(`/api/tasks/${task._id}`, formData, {
+        await axios.put(`/api/tasks/${task._id}`, dataToSend, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
-        await axios.post('/api/tasks', formData, {
+        await axios.post('/api/tasks', dataToSend, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }
@@ -70,7 +112,11 @@ function TaskForm({ onClose, task = {}, isEdit = false }) {
             onChange={handleChange}
             placeholder="Enter task title..."
             required
+            maxLength="100"
           />
+          <small style={{ color: '#666', fontSize: '0.8rem' }}>
+            {formData.title.length}/100 characters
+          </small>
         </div>
 
         <div className="form-group">
@@ -81,7 +127,11 @@ function TaskForm({ onClose, task = {}, isEdit = false }) {
             onChange={handleChange}
             placeholder="Enter task description..."
             rows="4"
+            maxLength="500"
           />
+          <small style={{ color: '#666', fontSize: '0.8rem' }}>
+            {formData.description.length}/500 characters
+          </small>
         </div>
 
         <div className="form-group">
@@ -112,7 +162,7 @@ function TaskForm({ onClose, task = {}, isEdit = false }) {
           </div>
         )}
 
-        {error && <div className="error">{error}</div>}
+        {error && <div className="error" style={{ marginBottom: '15px' }}>{error}</div>}
 
         <div className="form-actions">
           <button

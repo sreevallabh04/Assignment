@@ -32,6 +32,18 @@ function TaskCard({ task, onEdit, onDelete, onSmartAssign }) {
     });
   };
 
+  // Safe function to get user initials
+  const getUserInitials = (user) => {
+    if (!user || !user.username) return '?';
+    return user.username.charAt(0).toUpperCase();
+  };
+
+  // Safe function to get username
+  const getUsername = (user) => {
+    if (!user || !user.username) return 'Unknown';
+    return user.username;
+  };
+
   return (
     <div 
       ref={drag} 
@@ -53,9 +65,9 @@ function TaskCard({ task, onEdit, onDelete, onSmartAssign }) {
           {task.assignedTo ? (
             <>
               <div className="assigned-avatar">
-                {task.assignedTo.username.charAt(0).toUpperCase()}
+                {getUserInitials(task.assignedTo)}
               </div>
-              <span>{task.assignedTo.username}</span>
+              <span>{getUsername(task.assignedTo)}</span>
             </>
           ) : (
             <span style={{ color: '#a0aec0' }}>Unassigned</span>
@@ -83,7 +95,7 @@ function TaskCard({ task, onEdit, onDelete, onSmartAssign }) {
             e.stopPropagation();
             onSmartAssign(task._id);
           }}
-          title="Smart assign"
+          title="Smart assign to user with lowest workload"
         >
           🎯
         </button>
