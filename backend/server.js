@@ -29,16 +29,21 @@ app.use(express.json());
 // Connect to MongoDB with retry mechanism
 const connectMongoDB = async () => {
   try {
+    console.log('Connecting to MongoDB Atlas...');
+    
+    const startTime = Date.now();
     await mongoose.connect(process.env.MONGO_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000, // Reduce the timeout for faster feedback
+      serverSelectionTimeoutMS: 10000, // 10 second timeout for Atlas
       heartbeatFrequencyMS: 10000, // Keep connection alive
     });
-    console.log('MongoDB connected successfully');
+    const connectionTime = Date.now() - startTime;
+    console.log(`✅ MongoDB Atlas connected successfully in ${connectionTime}ms`);
+    console.log(`📚 Database: ${mongoose.connection.db?.databaseName}`);
     global.isMongoDBConnected = true;
   } catch (error) {
-    console.error('MongoDB connection error:', error);
+    console.error('❌ MongoDB connection failed:', error.message);
     console.warn('Continuing without MongoDB connection - some features may not work properly');
     global.isMongoDBConnected = false;
     
@@ -131,8 +136,21 @@ app.get('/', (req, res) => {
 
 // Start the server
 const PORT = process.env.PORT || 5000;
+
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🌐 Access your application at: http://localhost:${PORT}`);
+});
+
+// Enhanced error handling for port conflicts
+server.on('error', (error) => {
+  if (error.code === 'EADDRINUSE') {
+    console.error(`❌ Port ${PORT} is already in use`);
+    console.error('💡 Try using a different port or stop the conflicting process');
+    process.exit(1);
+  } else {
+    console.error('Server error:', error);
+  }
 });
 
 // Export for testing
