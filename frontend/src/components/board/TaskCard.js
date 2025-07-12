@@ -10,6 +10,19 @@ function TaskCard({ task, onEdit, onDelete, onSmartAssign }) {
     }),
   });
 
+  const getPriorityClass = (priority) => {
+    switch (priority?.toLowerCase()) {
+      case 'high':
+        return 'priority-high';
+      case 'medium':
+        return 'priority-medium';
+      case 'low':
+        return 'priority-low';
+      default:
+        return 'priority-medium';
+    }
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -19,115 +32,74 @@ function TaskCard({ task, onEdit, onDelete, onSmartAssign }) {
     });
   };
 
-  const getPriorityColor = (priority) => {
-    switch (priority?.toLowerCase()) {
-      case 'high':
-        return '#e74c3c';
-      case 'medium':
-        return '#f39c12';
-      case 'low':
-        return '#27ae60';
-      default:
-        return '#95a5a6';
-    }
-  };
-
   return (
     <div 
       ref={drag} 
       className={`task-card ${isDragging ? 'dragging' : ''}`}
-      style={{
-        borderLeftColor: getPriorityColor(task.priority),
-        cursor: isDragging ? 'grabbing' : 'grab'
-      }}
     >
-      {/* Task Header */}
       <div className="task-header">
         <h3>{task.title}</h3>
-        <span className={`priority ${task.priority?.toLowerCase()}`}>
+        <span className={`priority-badge ${getPriorityClass(task.priority)}`}>
           {task.priority}
         </span>
       </div>
-
-      {/* Task Description */}
+      
       {task.description && (
-        <p className="task-description">
-          {task.description.length > 100 
-            ? `${task.description.substring(0, 100)}...` 
-            : task.description
-          }
-        </p>
+        <p className="task-description">{task.description}</p>
       )}
-
-      {/* Task Meta Information */}
+      
       <div className="task-meta">
-        <div className="assigned-info">
-          <span className="label">Assigned to:</span>
-          <span className="assigned-user">
-            {task.assignedTo?.username || 'Unassigned'}
-          </span>
+        <div className="assigned-user">
+          {task.assignedTo ? (
+            <>
+              <div className="assigned-avatar">
+                {task.assignedTo.username.charAt(0).toUpperCase()}
+              </div>
+              <span>{task.assignedTo.username}</span>
+            </>
+          ) : (
+            <span style={{ color: '#a0aec0' }}>Unassigned</span>
+          )}
         </div>
-        
-        <div className="created-info">
-          <span className="label">Created:</span>
-          <span className="date">
-            {formatDate(task.createdAt)}
-          </span>
-        </div>
-      </div>
-
-      {/* Created by and Last edited info */}
-      <div className="task-footer">
-        <div className="created-by">
-          <small>
-            By: {task.createdBy?.username || 'Unknown'}
-            {task.lastEditedBy && task.lastEditedBy._id !== task.createdBy?._id && (
-              <span> • Edited by: {task.lastEditedBy.username}</span>
-            )}
-          </small>
+        <div className="task-date">
+          {formatDate(task.createdAt)}
         </div>
       </div>
-
-      {/* Task Actions */}
+      
       <div className="task-actions">
         <button 
-          className="edit-btn"
+          className="btn btn-secondary" 
           onClick={(e) => {
             e.stopPropagation();
             onEdit(task);
           }}
           title="Edit task"
         >
-          ✏️ Edit
+          ✏️
         </button>
         <button 
-          className="assign-btn"
+          className="btn btn-primary" 
           onClick={(e) => {
             e.stopPropagation();
             onSmartAssign(task._id);
           }}
-          title="Smart assign to user with fewest tasks"
+          title="Smart assign"
         >
-          🎯 Auto-Assign
+          🎯
         </button>
         <button 
-          className="delete-btn"
+          className="btn btn-danger" 
           onClick={(e) => {
             e.stopPropagation();
-            onDelete(task._id);
+            if (window.confirm('Are you sure you want to delete this task?')) {
+              onDelete(task._id);
+            }
           }}
           title="Delete task"
         >
-          🗑️ Delete
+          🗑️
         </button>
       </div>
-
-      {/* Editing indicator */}
-      {task.isBeingEdited && (
-        <div className="editing-indicator">
-          <span>🔄 Being edited by {task.editingUser?.username}</span>
-        </div>
-      )}
     </div>
   );
 }
