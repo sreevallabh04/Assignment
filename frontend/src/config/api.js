@@ -1,48 +1,71 @@
-// API Configuration
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
+// API Configuration for TaskFlow Frontend
+// This file centralizes API configuration and handles environment variables
 
-// Development vs Production URL detection
-const isDevelopment = process.env.NODE_ENV === 'development';
-const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-
-// Auto-detect API URL if not explicitly set
-let finalApiUrl = API_BASE_URL;
-let finalSocketUrl = SOCKET_URL;
-
-if (!isDevelopment && !process.env.REACT_APP_API_URL) {
-  // In production, if no API URL is set, try to use the same domain
-  finalApiUrl = window.location.origin;
-  finalSocketUrl = window.location.origin;
-}
-
-export const API_CONFIG = {
-  BASE_URL: finalApiUrl,
-  SOCKET_URL: finalSocketUrl,
-  ENDPOINTS: {
-    // Authentication
-    LOGIN: `${finalApiUrl}/api/auth/login`,
-    REGISTER: `${finalApiUrl}/api/auth/register`,
-    PROFILE: `${finalApiUrl}/api/auth/profile`,
-    
-    // Tasks
-    TASKS: `${finalApiUrl}/api/tasks`,
-    TASK_BY_ID: (id) => `${finalApiUrl}/api/tasks/${id}`,
-    SMART_ASSIGN: (id) => `${finalApiUrl}/api/tasks/${id}/smart-assign`,
-    
-    // Logs
-    LOGS: `${finalApiUrl}/api/logs`,
+const config = {
+  // API Base URL - defaults to localhost for development
+  apiUrl: process.env.REACT_APP_API_URL || 'http://localhost:5000',
+  
+  // Socket.IO URL - defaults to API URL
+  socketUrl: process.env.REACT_APP_SOCKET_URL || process.env.REACT_APP_API_URL || 'http://localhost:5000',
+  
+  // Application settings
+  appTitle: process.env.REACT_APP_TITLE || 'TaskFlow',
+  environment: process.env.REACT_APP_ENV || 'development',
+  
+  // Feature flags
+  enableSocket: process.env.REACT_APP_ENABLE_SOCKET !== 'false',
+  enableRealTime: process.env.REACT_APP_ENABLE_REAL_TIME !== 'false',
+  
+  // API endpoints
+  endpoints: {
+    auth: {
+      register: '/api/auth/register',
+      login: '/api/auth/login',
+      logout: '/api/auth/logout',
+      verify: '/api/auth/verify'
+    },
+    tasks: {
+      list: '/api/tasks',
+      create: '/api/tasks',
+      update: (id) => `/api/tasks/${id}`,
+      delete: (id) => `/api/tasks/${id}`,
+      assign: (id) => `/api/tasks/${id}/assign`
+    },
+    logs: {
+      list: '/api/logs',
+      create: '/api/logs'
+    }
+  },
+  
+  // Request configuration
+  requestConfig: {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    timeout: 10000, // 10 seconds
+  },
+  
+  // Socket.IO configuration
+  socketConfig: {
+    transports: ['websocket', 'polling'],
+    autoConnect: true,
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000,
   }
 };
 
-// Debug logging for development
-if (isDevelopment) {
-  console.log('API Configuration:', {
-    BASE_URL: finalApiUrl,
-    SOCKET_URL: finalSocketUrl,
-    ENV: process.env.NODE_ENV,
-    IS_LOCALHOST: isLocalhost
-  });
-}
+// Helper function to get full API URL
+export const getApiUrl = (endpoint) => {
+  const baseUrl = config.apiUrl.replace(/\/$/, ''); // Remove trailing slash
+  const cleanEndpoint = endpoint.replace(/^\//, ''); // Remove leading slash
+  return `${baseUrl}/${cleanEndpoint}`;
+};
 
-export default API_CONFIG; 
+// Helper function to get full Socket URL
+export const getSocketUrl = () => {
+  return config.socketUrl.replace(/\/$/, ''); // Remove trailing slash
+};
+
+// Export configuration
+export default config; 

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import axios from 'axios';
-import { API_CONFIG } from '../../config/api';
+import config, { getApiUrl, getSocketUrl } from '../../config/api';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import Column from './Column';
@@ -42,12 +42,12 @@ function Board() {
     const parsedUser = JSON.parse(userData);
     setUser(parsedUser);
 
-    const newSocket = io(API_CONFIG.SOCKET_URL);
+    const newSocket = io(getSocketUrl());
     setSocket(newSocket);
 
     const fetchTasks = async () => {
       try {
-        const res = await axios.get(API_CONFIG.ENDPOINTS.TASKS, { 
+        const res = await axios.get(getApiUrl(config.endpoints.tasks.list), { 
           headers: { Authorization: `Bearer ${token}` } 
         });
         setTasks(res.data.tasks);
@@ -60,7 +60,7 @@ function Board() {
 
     const fetchLogs = async () => {
       try {
-        const res = await axios.get(API_CONFIG.ENDPOINTS.LOGS, { 
+        const res = await axios.get(getApiUrl(config.endpoints.logs.list), { 
           headers: { Authorization: `Bearer ${token}` } 
         });
         setLogs(res.data.logs);
@@ -112,13 +112,13 @@ function Board() {
     console.log('🔬 FRONTEND DELETE - Starting delete request');
     console.log('🔬 FRONTEND DELETE - Task ID:', taskId);
     console.log('🔬 FRONTEND DELETE - Task ID type:', typeof taskId);
-    console.log('🔬 FRONTEND DELETE - API endpoint:', API_CONFIG.ENDPOINTS.TASK_BY_ID(taskId));
+    console.log('🔬 FRONTEND DELETE - API endpoint:', getApiUrl(config.endpoints.tasks.delete(taskId)));
     console.log('🔬 FRONTEND DELETE - Token exists:', !!localStorage.getItem('token'));
     
     try {
       console.log('🔬 FRONTEND DELETE - Making DELETE request...');
       
-      const response = await axios.delete(API_CONFIG.ENDPOINTS.TASK_BY_ID(taskId), { 
+      const response = await axios.delete(getApiUrl(config.endpoints.tasks.delete(taskId)), { 
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
       });
       
@@ -149,7 +149,7 @@ function Board() {
 
   const handleSmartAssign = async (taskId) => {
     try {
-      const res = await axios.put(API_CONFIG.ENDPOINTS.SMART_ASSIGN(taskId), {}, { 
+      const res = await axios.put(getApiUrl(config.endpoints.tasks.assign(taskId)), {}, { 
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
       });
       
@@ -183,7 +183,7 @@ function Board() {
 
   const handleDrop = async (taskId, newStatus) => {
     try {
-      const res = await axios.put(API_CONFIG.ENDPOINTS.TASK_BY_ID(taskId), { status: newStatus }, { 
+      const res = await axios.put(getApiUrl(config.endpoints.tasks.update(taskId)), { status: newStatus }, { 
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } 
       });
       setTasks((prev) => prev.map((t) => t._id === taskId ? res.data.task : t));
