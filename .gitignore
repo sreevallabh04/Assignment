@@ -23,7 +23,7 @@ frontend/build/
 frontend/dist/
 backend/build/
 backend/dist/
-
+backend/env
 # Runtime data
 pids
 *.pid
