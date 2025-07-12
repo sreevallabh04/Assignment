@@ -8,7 +8,7 @@ const User = require('../models/User');
 const protect = async (req, res, next) => {
   let token;
 
-  // Check if authorization header exists and starts with Bearer
+  // Check if authorization header exists and stahhrts with Bearer
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
