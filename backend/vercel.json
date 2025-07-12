@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "name": "taskflow-backend",
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/server.js"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production",
+    "MONGO_URI": "@mongo_uri",
+    "JWT_SECRET": "@jwt_secret",
+    "CLIENT_URL": "@client_url"
+  },
+  "functions": {
+    "server.js": {
+      "maxDuration": 30
+    }
+  }
+} 

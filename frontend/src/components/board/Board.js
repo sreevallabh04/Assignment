@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import axios from 'axios';
@@ -23,6 +23,12 @@ function Board() {
   const [conflict, setConflict] = useState(null);
   const [socket, setSocket] = useState(null);
   const [notification, setNotification] = useState(null);
+
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/login');
+  }, [navigate]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -94,13 +100,7 @@ function Board() {
     return () => {
       newSocket.disconnect();
     };
-  }, [navigate]);
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/login');
-  };
+  }, [navigate, handleLogout]);
 
   const handleEdit = (task) => {
     setEditingTask(task);

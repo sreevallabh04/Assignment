@@ -13,7 +13,9 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 backend/.env
+backend/.env.production
 frontend/.env
+frontend/.env.production
 **/.env
 
 # Production build files
