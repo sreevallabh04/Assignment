@@ -1,4 +1,4 @@
-{
+﻿{
   "version": 2,
   "name": "taskflow-collaborative-board",
   "builds": [
@@ -10,26 +10,18 @@
       }
     },
     {
-      "src": "backend/server.js",
+      "src": "backend/api/index.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/backend/server.js"
+      "dest": "/backend/api/index.js"
     },
     {
       "src": "/(.*)",
       "dest": "/frontend/build/$1"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  },
-  "functions": {
-    "backend/server.js": {
-      "maxDuration": 30
-    }
-  }
-} 
+  ]
+}
